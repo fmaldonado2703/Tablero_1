@@ -1,0 +1,247 @@
+---
+title: "Carrera la luz 2022-"
+##suntitle: "Actividad_1 Metodos Y Simulación Estadistica"
+output: 
+  flexdashboard::flex_dashboard:
+    theme:
+      bg: "#E0EEEE"
+      fg: "#030303" #fondo tablero 
+      primary: "#EEE8CD"
+      base_font:
+        google: Prompt
+      code_font:
+        google: JetBrains Mono
+    orientation: columns
+    vertical_layout: fill
+---
+
+```{r setup, include=FALSE}
+###install.packages("dplyr")
+##install.packages("scales")
+library(scales)
+library(dplyr)
+library(flexdashboard)
+library(readr)
+library(ggplot2)
+library(paqueteMET)                # activar paqueteMET
+data("CarreraLuz22")  
+# Install thematic and un-comment for themed static plots (i.e., ggplot2)
+# thematic::thematic_rmd()
+```
+
+## Column {.tabset data-width="700"}
+
+### 1_Tiempo_carrera
+
+```{r}
+
+ggplot(CarreraLuz22, aes(x=categoria , y=timerun/60))+
+    geom_jitter(colour = "#2F4F4F", shape = 17)  +   # geom_pointgrafico de puntos,fill=names.arg
+  labs(title = "Tiempos de Carrera",colour = 70,
+subtitle = "Base : Carrera_LUZ-22",
+x = "Categorias", 
+y = "Tiempo en minutos",
+caption = "ejericio clase 1 " )
+
+```
+
+### 2_Hombres_categoria
+
+```{r}
+Hombre = subset(CarreraLuz22, (CarreraLuz22$sex=="Hombre"))
+ggplot(Hombre, aes(x=categoria, y= timerun/60 ,fill = categoria))+
+    geom_jitter(colour = "#2F4F4F", shape = 10)  +   # geom_pointgrafico de puntos,fill=names.arg
+    labs(title = "Hombres Por categoria",colour = 70,
+x = "Categorias", 
+y = "Tiempo en minutos")+  geom_boxplot(fill=("#1C86EE") ) +
+  theme(legend.position = "none")
+
+
+#### Porcentaje de participcion de Hombres por categoria
+
+
+library(ggplot2)
+library(dplyr)
+
+ porcentaje_H <- Hombre%>% 
+  group_by(categoria) %>% 
+  count() %>% 
+  ungroup() %>% 
+  mutate(percentage=`n`/sum(`n`) * 100) 
+ggplot(porcentaje_H, aes(x=1, y=percentage, fill=categoria))+
+    geom_jitter(colour = "#2F4F4F", shape = 10)  +   # geom_pointgrafico de puntos,fill=names.arg
+    labs(title = "% de Participacion de Hombres Por Categoria",colour = 70,
+x = "Categorias", 
+y = "Tiempo en minutos")+  geom_boxplot(fill=("#1C86EE") ) +
+         geom_bar(stat="identity") +
+         geom_text(aes(label = paste0(round(percentage,1),"%")), 
+       position = position_stack(vjust =0.5))+
+        #+ coord_polar(theta = "y") + 
+         theme_void()+scale_fill_brewer(palette ="Blues" )
+
+```
+
+### 3_ Mujeres_categoria
+
+```{r}
+
+Mujer = subset(CarreraLuz22, (CarreraLuz22$sex=="Mujer"))
+ggplot(Mujer, aes(x=categoria, y= timerun/60 ,fill = categoria))+
+    geom_jitter(colour = "#2F4F4F", shape = 18)  +   # geom_pointgrafico de puntos,fill=names.arg
+    labs(title = "Mujeres Por categoria",colour = 70,
+x = "Categorias", 
+y = "Tiempo en minutos")+  geom_boxplot(fill=("#EEA2AD") ) +
+  theme(legend.position = "none")
+
+## Column {data-width="300"}
+###  Porcentaje de participcion de Mujeres por categoria
+
+library(ggplot2)
+library(dplyr)
+
+ porcentaje_H <- Mujer%>% 
+  group_by(categoria) %>% 
+  count() %>% 
+  ungroup() %>% 
+  mutate(percentage=`n`/sum(`n`) * 100) 
+ggplot(porcentaje_H, aes(x=1, y=percentage, fill=categoria))+
+    geom_jitter(colour = "#2F4F4F", shape = 10)  +   # geom_pointgrafico de puntos,fill=names.arg
+    labs(title = "% de Participacion de Mujeres Por Categoria",colour = 70,
+x = "Categorias", 
+y = "Tiempo en minutos")+  geom_boxplot(fill=("#EEA2AD") ) +
+         geom_bar(stat="identity") +
+         geom_text(aes(label = paste0(round(percentage,1),"%")), 
+       position = position_stack(vjust =0.5))+
+        #+ coord_polar(theta = "y") + 
+         theme_void()+scale_fill_brewer(palette ="Reds" )
+
+porcentaje_H
+
+
+```
+
+### 4_Total mujeres y hombres
+
+```{r}
+ConteoHM <- table(CarreraLuz22$sex, CarreraLuz22$categoria)
+barplot(ConteoHM, main="Número de Atletas por categoria y sexo",  
+xlab="Categorías",
+col=c("#1E90FF","#FF69B4"),
+legend = rownames(ConteoHM),
+las=1, ylim = c(0,1200), 
+names.arg=c("Juvenil","Abierta","Veteranos A","Veteranos B","Veteranos C"))
+ ### text(barp,ConteoHM+0.5, labels=ConteoHM)
+  
+```
+
+### 5_Resultado {.value-box}
+```{r, echo=FALSE, out.width="30%", fig.alin = "center"}
+
+valueBox(value=("Generalidades"),
+                     caption = "- La Carrera Luz se desarrolla en la Ciudad de Cali 
+-  En la ultima vigencia reunió un total de 1922 Atletas  con edades entre 16 a 64 años representados los cuales e presentaron en  5 categorías (Juvenil ,Abierta, veteranos(A,B,C).
+
+El recorrido total fue de 10,07KM, un tiempo promedio de carrera de 65.26 minutos y una participación de 38,7 % mujeres.
+
+- Se presenta  mayor participación  en la categoría abierta con un 67,5% del total de mujeres y 57.5 % del total de hombres.
+
+- El mejor tiempo fue de 33.13 minutos liderado por un hombre de Sevilla en la categoría Abierta
+.
+- Esperamos el próximo año contar con mayor participación- 
+.
+--Los esperamos  -- 
+
+",
+                     icon= "fas fa-clipboard-list",
+                     color = "#C1CDCD")
+
+```
+
+
+
+
+## Column {data-width="500"}
+
+### Tiempo Mujeres Categoria Abierta
+
+```{r}
+mujer_categoria_Abierta=subset(CarreraLuz22, (CarreraLuz22$sex=="Mujer" & CarreraLuz22$categoria=="2. Abierta")) # dataset de
+x=mujer_categoria_Abierta$timerun/60
+hist(x, xlim=c(40,120), las=1,
+main = "",
+xlab="Tiempo (min)",
+ylab = "Frecuencia",
+col ="#EEB4B4")
+
+```
+
+### Tiempo Hombres Categoria Abierta
+
+```{r}
+Hombre_categoria_Abierta=subset(CarreraLuz22, (CarreraLuz22$sex=="Hombre" & CarreraLuz22$categoria=="2. Abierta")) # dataset de
+x=Hombre_categoria_Abierta$timerun/60
+hist(x, xlim=c(40,120), las=1,
+main = "",
+xlab="Tiempo (min)",
+ylab = "Frecuencia",
+col ="#00B2EE")
+```
+
+## Column {data-width="100"}
+
+### Tiempo Ganador {.value.box}
+
+```{r}
+valueBox(value=paste(round(min(CarreraLuz22$timerun/60),2),"Minutos"),
+                     caption = "Tempo del Ganador",
+                     icon="fa-clock-o",
+                     color = "#C1CDCD")
+
+```
+
+### Velocidad Maxima {.value-box}
+
+```{r}
+valueBox(value=paste(round(10070/(min(CarreraLuz22$timerun/60)*60),2),"m/s"),
+                     caption = "Maxima Veloccidad",
+                     icon="fa-arrow-up",
+                     color = "#C1CDCD")
+```
+
+### Velocidad Maxima {.value-box}
+
+```{r}
+valueBox(value=paste(round(10.07,2),"KM"),
+                     caption = "Distancia Recorrida",
+                     icon="fa-pencil",
+                     color = "#C1CDCD")
+```
+
+### numero de participantes {.VALUE-BOX}
+
+```{r}
+valueBox(value=paste(length(CarreraLuz22$id),"ATLETAS"),
+                     caption = "Numero de Participantes",
+                     icon="fa-users",
+                     color = "#C1CDCD")
+```
+
+### Porcentaje de Mujeres {.VALUE-BOX}
+
+```{r}
+mujer = subset(CarreraLuz22, (CarreraLuz22$sex=="Mujer"))
+
+Muj <- round(length(mujer$id)/length(CarreraLuz22$id)*100,2)
+gauge(Muj,min=0,max=100,symbol = '%' ,gaugeSectors(success =c(30,100),warning = c(21,29),danger =  c (0,20) , colors="#FFC0CB"))
+
+
+```
+
+### Tiempo Promedio de carera {.value-box}
+
+```{r}
+valueBox(value=paste(round(mean(CarreraLuz22$timerun)/60,2),"Min"),
+                     caption = "Tiempo Promedio de Carrera",
+                     icon= "fas fa-clipboard-list",
+                     color = "#C1CDCD")
+```
