@@ -1,0 +1,97 @@
+# Propuesta Avance 2 fabian Prueba
+
+## Cargar Librerias a usar
+```{r}
+library(lubridate) 
+library(forecast) 
+library(MLmetrics) 
+library(tseries) 
+library(TSstudio) 
+library(padr) 
+library(imputeTS)
+library(ggplot2)
+library(tidyverse)
+theme_set(theme_minimal())
+```
+## Cargar la data del Data set
+```{r}
+data = read.csv("Gold Price.csv")
+head(data)
+```
+## Limpieza de Datos
+```{r}
+# Validar los tipos de datos de cada Columna
+str(data)
+```
+La columna "Date" está en tipo "character", por lo tanto toca convertir esta en formato de Tiempo
+
+```{r}
+data <- data %>% 
+  mutate(Date = ymd(Date))
+
+str(data)
+```
+Todas las columnas se encuentran en el tipo correcto. 
+
+## Padding & imputation
+Si observamos la data solo comprende fechas entre semana, pero en series de tiempo deberiamos tener la data mas completa en la medida de lo posible.
+```{r}
+#Padding
+data <- data %>% 
+  pad(interval = "day") 
+
+# imputar NA values con la ultima observacion
+data_clean <- data %>% na.locf()
+
+head(data_clean)
+```
+## Exploración de la data
+Para explorar la data debemos primero crear el objeto de serie de tiempo
+```{r}
+# ts
+data_ts <- ts(data = data_clean$Price, start = 2014, frequency = 7*4*12)
+data_ts %>% 
+autoplot()
+```
+Se observa un comportamiento INCREMENTAL a traves del tiempo y adicionalmente se podria inferir un modelo multiplicativo
+
+```{r}
+# Calcular el promedio móvil
+promedio_movil <- ma(data_ts, order = 12)  # Cambia el valor de 'order' según tus necesidades
+# Graficar la serie de tiempo y el promedio móvil por separado
+autoplot(data_ts) + ggtitle("Serie de Tiempo") +
+  autolayer(promedio_movil, series = "Promedio Móvil")
+```
+
+Se puede apreciar que el promedio movil, sigue de cerca a la serie temporal indidcando que hay poco ruido en la variable y que se sigue una tendencia clara.
+
+## Descomposición
+Se realiza la descomposicion para validar la tendencia, estacionalidad.
+```{r}
+data_decompose <- data_ts %>% 
+  decompose(type = "multiplicative")
+  
+data_decompose %>% 
+  autoplot()
+```
+en efecto se evidencia una tendencia lineal y adicionalmente hay un patron de estacionalidad en la data
+
+## Análisis de estacionalidad
+
+```{r}
+data_decompose$seasonal %>% 
+  autoplot()
+```
+Se tratará de validar un patron mensual del precio de oro entre el 2014 y 2021
+
+```{r}
+data_clean %>% 
+  mutate(Month = month(Date, label = T)) %>% 
+  mutate(seasons = data_decompose$seasonal) %>% 
+  group_by(Month) %>% 
+  summarise(total = sum(seasons)) %>%   
+  ggplot(aes(Month, total)) +
+  geom_col()+
+  theme_minimal()
+```
+Los precios de oro tienden a ser mas altos entre enero a Julio, mierntas que agosto a diciembre el precio baja.
